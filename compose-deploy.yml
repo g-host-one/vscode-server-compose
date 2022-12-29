@@ -1,0 +1,37 @@
+---
+- name: Update vscode server
+  hosts: chr-lt
+
+  vars:
+    project_dir: /root/vscode-server-compose
+
+  tasks:
+    - name: Stop docker compose
+      command: docker compose down
+      args:
+        chdir: "{{ project_dir }}"
+      register: compose_state
+      changed_when: '"No resource found to remove" not in compose_state.stderr'
+
+    - name: Update compose files
+      copy:
+        src: ./{{ item }}
+        dest: "{{ project_dir }}/{{ item }}"
+        force: true
+        mode: preserve
+      loop:
+        - docker-compose.yml
+
+    - name: Build docker compose
+      command: docker compose build
+      args:
+        chdir: "{{ project_dir }}"
+      register: compose_state
+      changed_when: '"resolve" in compose_state.stdout or "The following additional packages will be installed" in compose_state.stdout'
+
+    - name: Start docker compose
+      command: docker compose up -d
+      args:
+        chdir: "{{ project_dir }}"
+      register: compose_state
+      changed_when: '"Started" in compose_state.stderr'

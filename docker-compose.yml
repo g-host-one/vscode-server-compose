@@ -1,0 +1,28 @@
+services:
+  vscode-server:
+    image: lscr.io/linuxserver/code-server:latest
+    container_name: vscode-server
+    restart: always
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/London
+      - DEFAULT_WORKSPACE=/config/workspace
+      - PASSWORD
+      - SUDO_PASSWORD
+    ports:
+      - "${VSCODE_HTTP}:8443"
+    volumes:
+      - vscode_config:/config
+    networks:
+      - vscode-net
+
+volumes:
+  vscode_config:
+
+networks:
+  vscode-net:
+    ipam:
+        driver: default
+        config:
+          - subnet: "${VSCODE_NET}"
